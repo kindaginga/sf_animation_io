@@ -34,7 +34,7 @@ if CommonUtils.GetBlenderVersion()[0] != 5:
 bl_info = {
     "name": "Starfield Animation",
     "author": "Deveris, Calaverah & Jojo",
-    "version": (1, 0, 1),
+    "version": (1, 0, 5),
     "blender": (4, 3, 0),
     "location": "File > Import-Export",
     "description": "Export & Import Starfield .af & .rig",

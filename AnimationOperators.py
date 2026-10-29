@@ -4,7 +4,7 @@ import textwrap
 import bpy
 
 from .API import AnimConverter
-from .API.AnimationUtils import LoadAnim
+from .API.AnimationUtils import LoadAnim, MakeQuaternionKeysContinuous
 from .CommonUtils import GenDescriptionBox, PrepareFileName, GenPrettyPropTable, GenPrettyPropTableWithLabel
 from .API.RigUtils import (
     rig_list_enum_items,
@@ -187,6 +187,8 @@ class ImportCustomAnimation(bpy.types.Operator):
                     target_frame,
                     frame.bone_data
                 )
+
+            MakeQuaternionKeysContinuous(armature_obj)
 
             if len(anim_data.frames.keys()) > max_frames:
                 max_frames = len(anim_data.frames.keys())

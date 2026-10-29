@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "tool_starfield_animation_io"
-version = "1.0.2"
+version = "1.0.5"
 name = "Starfield Animation"
 tagline = "Import/Export Starfield Animation/Rig"
 maintainer = "Deveris, Calaverah & Jojo"

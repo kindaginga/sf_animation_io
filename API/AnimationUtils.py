@@ -27,6 +27,46 @@ def LoadAnim(armature_obj, frame_num, frame_bones_list):
 
         SetAnimationBoneMatrix(frame_bone, pose_bone, frame_num)
 
+def QuaternionFcurves(armature_obj):
+    # Returns {bone data path: {channel index: fcurve}} for every rotation_quaternion curve of the armature's action.
+    action = armature_obj.animation_data.action
+    if hasattr(action, "layers") and len(action.layers):
+        fcurves = [fc for layer in action.layers for strip in layer.strips for bag in strip.channelbags for fc in bag.fcurves]
+    else:
+        fcurves = list(action.fcurves)
+    groups = {}
+    for fc in fcurves:
+        if fc.data_path.endswith(".rotation_quaternion"):
+            groups.setdefault(fc.data_path, {})[fc.array_index] = fc
+    return groups
+
+def MakeQuaternionKeysContinuous(armature_obj):
+    # Negates each rotation key whose quaternion lies in the opposite hemisphere from the bone's previous key, so a per-channel interpolation between keys never passes through a wrong rotation; returns the number of keys negated.
+    if armature_obj.animation_data is None or armature_obj.animation_data.action is None:
+        return 0
+    negated = 0
+    for channels in QuaternionFcurves(armature_obj).values():
+        if len(channels) != 4:
+            continue
+        keys = [{round(kp.co[0], 4): kp for kp in channels[i].keyframe_points} for i in range(4)]
+        frames = sorted(set(keys[0]).intersection(*keys[1:]))
+        prev = None
+        for f in frames:
+            q = [keys[i][f].co[1] for i in range(4)]
+            if prev is not None and sum(a * b for a, b in zip(q, prev)) < 0.0:
+                for i in range(4):
+                    kp = keys[i][f]
+                    kp.co[1] = -kp.co[1]
+                    kp.handle_left[1] = -kp.handle_left[1]
+                    kp.handle_right[1] = -kp.handle_right[1]
+                q = [-x for x in q]
+                negated += 1
+            prev = q
+    for channels in QuaternionFcurves(armature_obj).values():
+        for fc in channels.values():
+            fc.update()
+    return negated
+
 def SetAnimationBoneMatrix(frame_bone, pose_bone, frame_num):
     pose_bone.rotation_mode = 'QUATERNION'
 
